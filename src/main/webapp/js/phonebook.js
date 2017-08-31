@@ -3,6 +3,7 @@ function Contact(firstName, lastName, phone) {
     this.firstName = firstName();
     this.lastName = lastName();
     this.phone = phone();
+    this.id = 0;
     this.checked = ko.observable(false);
     this.shown = ko.observable(true);
 }
@@ -27,25 +28,7 @@ function PhoneBookModel() {
     self.firstName = ko.observable("");
     self.lastName = ko.observable("");
     self.phone = ko.observable("");
-
-   /* self.filteredText = ko.observable("");
-    self.selectAll = ko.observable(false);
-
-    self.selectAll.subscribe(function (selectAllValue) {
-        _.each(self.rows(), function (contact) {
-            if (contact.shown()) {
-                contact.checked(selectAllValue);
-            }
-        })
-    });
-
-    self.calcTextForDeleteDialog = function (rows) {
-        var note = _.map(rows, function (contact) {
-            return contactToString(contact);
-        }).join(", ");
-        note = "[" + note + "]";
-        return note;
-    };*/
+    self.id = ko.observable("");
 
     self.firstNameError = ko.computed(function () {
         if (self.firstName()) {
@@ -101,21 +84,6 @@ function PhoneBookModel() {
     });
 
     self.rows = ko.observableArray([]);
-   /* self.selectedContacts = ko.observableArray([]);*/
-
-    /*self.textForDeleteDialog = ko.computed(function () {
-        var checkedContactList = _.filter(self.rows(), function (contact) {
-            return contact.checked() && contact.shown();
-        });
-
-        if (checkedContactList.length == 0) {
-            return "Выберите контакты для удаления.";
-        } else if (checkedContactList.length == 1) {
-            return "Вы уверены, что хотите удалить контакт:\r\n" + contactToString(checkedContactList[0]) + "?";
-        } else {
-            return "Вы уверены, что хотите удалить контакты:\r\n" + self.calcTextForDeleteDialog(checkedContactList) + "?";
-        }
-    });*/
 
     // Operations
     self.addContact = function () {
@@ -150,47 +118,41 @@ function PhoneBookModel() {
         self.validation(false);
     };
 
-   /* self.deleteContact = function (contact) {
+   self.deleteContact = function (contact) {
         var content = "Вы уверены, что хотите удалить контакт:\r\n" + contactToString(contact) + "?";
         openDeleteDialog("Удалить контакт", content,
             function () {
                 self.rows.remove(contact);
+
+                // if (self.hasError()) {
+                //     self.validation(true);
+                //     self.serverValidation(false);
+                //     return;
+                // }
+
+                $.ajax({
+                    type: "POST",
+                    url: "/phonebook/remove",
+                    data: 'index=' + contact.id
+                }).done(function() {
+                    // self.serverValidation(false);
+                }).fail(function(ajaxRequest) {
+                    // var contactValidation = $.parseJSON(ajaxRequest.responseText);
+                    // self.serverError(contactValidation.error);
+                    // self.serverValidation(true);
+                }).always(function() {
+                    $.ajax({
+                        type: "GET",
+                        url: "/phonebook/get/all",
+                        success: self.getAllSuccessCallback
+                    });
+                });
+
+
+
             }
         )
     };
-
-    self.deleteSelectedContact = function () {
-        var checkedContactList = _.filter(self.rows(), function (contact) {
-            return contact.checked() && contact.shown();
-        });
-        if (checkedContactList.length == 0) {
-            openAlert("Нет выбранных контактов", self.textForDeleteDialog());
-            return;
-        }
-        openDeleteDialog("Удалить контакты", self.textForDeleteDialog(),
-            function () {
-                self.rows(_.filter(self.rows(), function (contact) {
-                    return !contact.checked() || !contact.shown();
-                }));
-            }
-        );
-    };*/
-
-   /* self.filterContact = function () {
-        _.each(self.rows(), function (contact) {
-            var hidden = contact.firstName.toLowerCase().indexOf(self.filteredText().toLowerCase()) == -1 &&
-                contact.lastName.toLowerCase().indexOf(self.filteredText().toLowerCase()) == -1 &&
-                contact.phone.toLowerCase().indexOf(self.filteredText().toLowerCase()) == -1;
-            contact.shown(!hidden);
-        })
-    };
-
-    self.resetFilter = function () {
-        _.each(self.rows(), function (contact) {
-            contact.shown(true);
-        });
-        self.filteredText("");
-    }*/
 
     self.getAllSuccessCallback = function (msg) {
         var contactListFormServer = $.parseJSON(msg);

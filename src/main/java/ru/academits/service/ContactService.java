@@ -3,6 +3,7 @@ package ru.academits.service;
 import ru.academits.PhoneBook;
 import ru.academits.dao.ContactDao;
 import ru.academits.model.Contact;
+
 import java.util.List;
 
 
@@ -54,6 +55,10 @@ public class ContactService {
             contactDao.add(contact);
         }
         return contactValidation;
+    }
+
+    public void removeContact(int index) {
+        contactDao.remove(index);
     }
 
     public List<Contact> getAllContacts() {

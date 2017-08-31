@@ -19,6 +19,7 @@ public class GetAllContactsServlet extends HttpServlet {
         try {
             List<Contact> contactList = phoneBookService.getAllContacts();
             String contactListJson = contactConverter.convertToJson(contactList);
+            System.out.println("text: " + contactListJson);
             resp.getOutputStream().write(contactListJson.getBytes(Charset.forName("UTF-8")));
             resp.getOutputStream().flush();
             resp.getOutputStream().close();
